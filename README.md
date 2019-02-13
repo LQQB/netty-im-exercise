@@ -22,3 +22,51 @@ serverSelector 负责轮序是否为新连接， clientSelector 负责轮询连�
 #### Netty 编程
 Netty 是一个异步事件驱动的网络应用框架，可以快速开发可维护的高性能服务器和客户端
 
+服务端启动的方法
+1. handler() 方法
+    ```text
+        serverBootstrap.handler(new ChannelInitializer<NioServerSocketChannel>() {
+            protected void initChannel(NioServerSocketChannel ch) {
+                System.out.println("服务端启动中");
+            }
+        })
+    ```
+    handler()方法呢，可以和服务端搭建过程中的childHandler()方法对应起来，childHandler() 用于指
+    定处理新连接数据的读写处理逻辑， handler() 用于指定在服务端启动过程中的一些逻辑，通常情况下呢，
+    我们用不着这个方法。
+
+2. attr() 方法
+    ```text
+       serverBootstrap.attr(AttributeKey.newInstance("serverName"), "nettyServer")
+    ```
+    attr() 方法可以给服务端 chanel,也就是NioServerSocketChannel 指定一些自定义
+    属性，然后我们可以通过 channel.attr() 取出属性比如，上面的代码我们指定我们服务端
+    channel 的一个 serverName 属性，属性值为 nettyServer ，其实说白了就是给 
+    NioServerSocketChannel 维护一个 map 而已，通常情况下，我们也用不上这个方法。
+    
+3. childAttr() 方法
+    ```text
+       serverBootstrap.childAttr(AttributeKey.newInstance("clientKey"), "clientValue")
+    ```
+    上面的 childAttr 可以给每一条连接指定自定义属性，后续可以通用 channel.attr() 取出该属性
+    
+4. childOption() 方法
+    ```text
+    serverBootstrap
+            .childOption(ChannelOption.SO_KEEPALIVE, true)
+            .childOption(ChannelOption.TCP_NODELAY, true)
+    ```
+    childOption() 可以给每条连接设置一些TCP底层相关的属性，比如我们前面设置的两种TCP属性
+        
+        * ChannelOption.SO_KEEPALIVE 表示是否开启 TCP 底层心跳机制,true为开启
+        * ChannelOption.TCP_NODELAY 表示是否开启 Nagle 算法， true 表示关闭， false 表示开启
+        通俗地说，如果要求高实时性，有数据发送时就马上发送，就关闭，如果需要减少发送次数减少网络交互，
+        就开启。
+        
+5. option() 方法
+    除了给每个连接设置这一系列属性之外，我们还可以给服务端channel设置一些属性，最常见的就是so_backlog，如下设置
+    ```text
+       serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024)
+    ```
+    表示系统用于临时存放已完成三次握手的请求的队列的最大长度，如果连接建立频繁，
+    服务器处理创建新连接较慢，可以适当调大这个参

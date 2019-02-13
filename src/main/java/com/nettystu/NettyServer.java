@@ -28,24 +28,28 @@ public class NettyServer {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
-
+                        System.out.println("服务端启动中");
                     }
                 });
 
+        bind(serverBootstrap, 8000);
+    }
+
+
+    private static void bind(ServerBootstrap bootstrap,  int port) {
         // .bind() 是一个异步的方法，它一调用就会立即返回一个 ChannelFuture，给 ChannelFuture 添加监听器 GenericFutureListener 然后我们
         // 就可以在 GenericFutureListener 的 operationComplete 方法里面，监听端口是否绑定成功
-        serverBootstrap.bind(1000).addListeners(new GenericFutureListener<Future<? super Void>>() {
+        bootstrap.bind(port).addListeners(new GenericFutureListener<Future<? super Void>>() {
             @Override
             public void operationComplete(Future<? super Void> future) throws Exception {
                 if(future.isSuccess()) {
                     System.out.println("端口绑定成功");
                 } else {
                     System.err.println("端口绑定失败");
+                    bind(bootstrap, port+1);
                 }
             }
         });
-
     }
-
 
 }
