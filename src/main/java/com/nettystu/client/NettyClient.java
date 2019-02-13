@@ -1,4 +1,4 @@
-package com.nettystu;
+package com.nettystu.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -25,7 +25,10 @@ public class NettyClient {
                 // 3. IO 处理逻辑
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception { }
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        // 指定连接数据的读写逻辑
+                        ch.pipeline().addLast(new FirstClientHandler());
+                    }
                 });
 
         connect(bootstrap,"127.0.0.1", 8000, MAX_RETRY);

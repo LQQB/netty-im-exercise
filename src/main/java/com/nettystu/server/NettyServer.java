@@ -1,4 +1,4 @@
-package com.nettystu;
+package com.nettystu.server;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -27,8 +27,10 @@ public class NettyServer {
                 // ServerSocket 以及 Socket 两个概念对应
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
-                    protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
+                    protected void initChannel(NioSocketChannel ch) throws Exception {
                         System.out.println("服务端启动中");
+                        // 指定连接数据读写逻辑
+                        ch.pipeline().addLast(new FirstServerHandler());
                     }
                 });
 
