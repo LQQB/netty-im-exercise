@@ -22,8 +22,9 @@ serverSelector 负责轮序是否为新连接， clientSelector 负责轮询连�
 #### Netty 编程
 Netty 是一个异步事件驱动的网络应用框架，可以快速开发可维护的高性能服务器和客户端
 
-服务端启动的方法
+#### 服务端启动的方法
 1. handler() 方法
+
     ```text
         serverBootstrap.handler(new ChannelInitializer<NioServerSocketChannel>() {
             protected void initChannel(NioServerSocketChannel ch) {
@@ -36,6 +37,7 @@ Netty 是一个异步事件驱动的网络应用框架，可以快速开发可�
     我们用不着这个方法。
 
 2. attr() 方法
+
     ```text
        serverBootstrap.attr(AttributeKey.newInstance("serverName"), "nettyServer")
     ```
@@ -51,22 +53,42 @@ Netty 是一个异步事件驱动的网络应用框架，可以快速开发可�
     上面的 childAttr 可以给每一条连接指定自定义属性，后续可以通用 channel.attr() 取出该属性
     
 4. childOption() 方法
+
     ```text
     serverBootstrap
             .childOption(ChannelOption.SO_KEEPALIVE, true)
             .childOption(ChannelOption.TCP_NODELAY, true)
     ```
-    childOption() 可以给每条连接设置一些TCP底层相关的属性，比如我们前面设置的两种TCP属性
+    childOption() 可以给每条连接设置一些TCP底层相关的属性
         
-        * ChannelOption.SO_KEEPALIVE 表示是否开启 TCP 底层心跳机制,true为开启
-        * ChannelOption.TCP_NODELAY 表示是否开启 Nagle 算法， true 表示关闭， false 表示开启
-        通俗地说，如果要求高实时性，有数据发送时就马上发送，就关闭，如果需要减少发送次数减少网络交互，
-        就开启。
+    * ChannelOption.SO_KEEPALIVE 表示是否开启 TCP 底层心跳机制,true为开启
+    * ChannelOption.TCP_NODELAY 表示是否开启 Nagle 算法， true 表示关闭， false 表示开启
+    通俗地说，如果要求高实时性，有数据发送时就马上发送，就关闭，如果需要减少发送次数减少网络交互，
+    就开启。
+    * ChannelOption.CONNECT_TIMEOUT_MILLIS 表示连接的超时时间，超过这个时间还是
+    建立不上的话则代表连接失败
         
 5. option() 方法
+
     除了给每个连接设置这一系列属性之外，我们还可以给服务端channel设置一些属性，最常见的就是so_backlog，如下设置
     ```text
        serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024)
     ```
     表示系统用于临时存放已完成三次握手的请求的队列的最大长度，如果连接建立频繁，
     服务器处理创建新连接较慢，可以适当调大这个参
+
+> 服务端启动流程，创建一个引导类，然后给它设置线程模型，IO模型，连接读写处理逻辑，绑定端口后，服务端就启动了 
+
+> 服务端的 bind() 跟客户端的 connect() 方法是异步的
+
+> 还可以给 channel  设置 底层的 TCP 的属性
+    
+#### TCP底层相关的属性    
+* ChannelOption.SO_KEEPALIVE 表示是否开启 TCP 底层心跳机制,true为开启
+* ChannelOption.TCP_NODELAY 表示是否开启 Nagle 算法， true 表示关闭， false 表示开启
+通俗地说，如果要求高实时性，有数据发送时就马上发送，就关闭，如果需要减少发送次数减少网络交互，
+就开启。
+* ChannelOption.CONNECT_TIMEOUT_MILLIS 表示连接的超时时间，超过这个时间还是
+建立不上的话则代表连接失败
+        
+    
