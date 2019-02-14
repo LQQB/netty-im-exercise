@@ -6,6 +6,8 @@ while 死循环， 1w 个连接对应 1w 个线程。就会有 1w 个 while 死�
 1. 线程资源受限
 2. 线程切换效率低下
 3. IO 编程中， 数据读写以字节流为单位
+
+
 #### NIO 编程
 NIO 中新来一个连接不再创建一个新线程，而是把这条连接直接绑定到某个固定的线程中，
 然后这条连接所有的读写都由这个线程来负责。
@@ -18,6 +20,7 @@ serverSelector 负责轮序是否为新连接， clientSelector 负责轮询连�
 3.  clientSelector 被一个 while 死循环包裹着，如果在某一时刻有多
 条连接有数据可读，那么通过 clientSelector.select(1) 方法可以轮询出来，批量读写
 4. 数据读写面向 Buffer
+
 
 #### Netty 编程
 Netty 是一个异步事件驱动的网络应用框架，可以快速开发可维护的高性能服务器和客户端
@@ -100,3 +103,80 @@ Netty 是一个异步事件驱动的网络应用框架，可以快速开发可�
 收到数据之后都会调用 channelRead() 方法
 
 #### 数据传输载体 ByteBuf
+> 首先我们要知道 Netty 的数据读写只认 ByteBuf 
+
+ByteBuf 是一个字节容器，容器分成三个部分，第一部分就是已丢弃字节，第二部分是可读字节，
+第三部分是已写字节。
+
+以上三段被两个指针划分，从左到右依次是，一个是读指针(readerIndex)，一个是写指针(writerIndex)，
+还有个是 capacity ，表示 ByteBuf 底层的内存容量
+
+##### 容量 API
+   * capacity()
+   
+    表示 ByteBuf 底层占用了多少字节的内存（包括丢弃的字节、可读字节、可写字节），
+    不同的底层实现机制有不同的计算方式，后面我们讲 ByteBuf 的分类的时候会讲到
+    
+   * maxCapacity()
+    
+    表示 ByteBuf 底层最大能够占用多少字节的内存，当向 ByteBuf 中写数据的时候，
+    如果发现容量不足，则进行扩容，直到扩容到 maxCapacity，超过这个数，就抛异常
+    
+   * readableBytes() 与 isReadable()
+    
+    readableBytes() 表示 ByteBuf 当前可读的字节数，它的值等于 
+    writerIndex-readerIndex，如果两者相等，则不可读，isReadable() 
+    方法返回 false
+    
+   * writableBytes()、 isWritable() 与 maxWritableBytes()
+    
+    writableBytes() 表示 ByteBuf 当前可写的字节数，它的值等于 
+    capacity-writerIndex，如果两者相等，则表示不可写，
+    isWritable() 返回 false，但是这个时候，并不代表不能往 ByteBuf 中写数据了，
+     如果发现往 ByteBuf 中写数据写不进去的话，Netty 会自动扩容 ByteBuf，直到扩容
+     到底层的内存大小为 maxCapacity，而 maxWritableBytes() 就表示可写的最大字节
+     数，它的值等于 maxCapacity-writerIndex
+     
+##### 读写指针相关的 API
+   * readerIndex() 与 readerIndex(int)
+   
+    前者表示返回当前的读指针 readerIndex, 后者表示设置读指针
+    
+   * writeIndex() 与 writeIndex(int)
+ 
+    前者表示返回当前的写指针 writerIndex, 后者表示设置写指针
+   
+   * markReaderIndex() 与 resetReaderIndex()
+   
+    前者表示把当前的读指针保存起来，后者表示把当前的读指针恢复到之前保存的值，下面两段代码是等价的
+    常用于解析自定义协议的数据包
+    
+```Text
+// 代码片段1
+int readerIndex = buffer.readerIndex();
+// .. 其他操作
+buffer.readerIndex(readerIndex);
+    
+// 代码片段2
+buffer.markReaderIndex();
+// .. 其他操作
+buffer.resetReaderIndex();
+```
+    
+   * markWriterIndex() 与 resetWriterIndex()
+    
+    这一对 API 的作用与上述一对 API 类似，这里不再 赘述
+    
+
+     
+##### 读写 API
+
+   * release() 与 retain()
+
+    由于 Netty 使用了堆外内存，而堆外内存是不被 jvm 直接管理的，也就是说申请到的内存无法被垃圾回收器直接回收，
+    所以需要我们手动回收。有点类似于c语言里面，申请到的内存必须手工释放，否则会造成内存泄漏。
+
+    Netty 的 ByteBuf 是通过引用计数的方式管理的，如果一个 ByteBuf 没有地方被引用到，
+    需要回收底层内存。默认情况下，当创建完一个 ByteBuf，它的引用为1，然后每次调用 
+     retain() 方法， 它的引用就加一， release() 方法原理是将引用计数减一，减完之后如果
+    发现引用计数为0，则直接回收 ByteBuf 底层的内存。
