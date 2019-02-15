@@ -201,3 +201,34 @@ buffer.resetReaderIndex();
  * attr() 通过 Channel 绑定属性来设置某些状态，通过判断状态可以知道 Channel 的登录状态
  * 定义一对 MESSAGE 请求响应的数据包，来进行消息的收发
  * 通过控制台获取消息，并发送给服务端
+ 
+ 
+#### Netty 的两个核心组件 channelHandler() 跟 pipeline()
+pipeline 和 channelHandler 通过责任链来组织代码逻辑。
+
+channelHandle 有两大子接口，一个是 ChannelInboundHandler,
+一个是 ChannelOutboundHandler , 从接口名就可以看出 一个是在处理
+读数据的逻辑，一个是处理写数据的逻辑
+
+* ChannelInboundHandler 的事件传播
+    ```text
+    public class InHandleA extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            System.out.println("InHandleA: " + msg);
+            super.channelRead(ctx, msg);  // 这里父类的 channelRead() 方法会自动调用到下一个 inBoundHandler
+        }
+    }
+    
+    public class InHandleB extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            System.out.println("InHandleB: " + msg);
+            super.channelRead(ctx, msg);
+        }
+    }
+    
+    ```
+    channelRead() 方法里面，我们打印当前 handler 的信息，然后调用父类的 channelRead() 
+    方法，而这里父类的 channelRead() 方法会自动调用到下一个 inBoundHandler 的 channelRead() 方法.
+
