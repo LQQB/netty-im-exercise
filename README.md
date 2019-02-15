@@ -232,3 +232,16 @@ channelHandle 有两大子接口，一个是 ChannelInboundHandler,
     channelRead() 方法里面，我们打印当前 handler 的信息，然后调用父类的 channelRead() 
     方法，而这里父类的 channelRead() 方法会自动调用到下一个 inBoundHandler 的 channelRead() 方法.
 
+#### 客户端跟服务端构建 pipeline
+
+* ByteToMessageDecoder 
+
+    Netty 提供的将二进制数据转换成Java对象的父类
+
+* SimpleChannelInboundHandler
+
+    ChannelHandler的子接口，可以把 根据类型判断和对象传递的活都自动帮我们实现了,来简化我们的指令处理逻辑
+    
+* MessageToByteEncoder
+
+    Netty提供的把响应对象编码成 ByteBuf  
