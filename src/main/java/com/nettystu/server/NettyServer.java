@@ -30,7 +30,7 @@ public class NettyServer {
                     protected void initChannel(NioSocketChannel ch) throws Exception {
                         System.out.println("服务端启动中");
                         // 指定连接数据读写逻辑
-                        ch.pipeline().addLast(new FirstServerHandler());
+                        ch.pipeline().addLast(new ServerHandler());
                     }
                 });
 

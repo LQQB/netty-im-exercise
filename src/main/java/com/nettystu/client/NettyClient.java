@@ -27,7 +27,7 @@ public class NettyClient {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         // 指定连接数据的读写逻辑
-                        ch.pipeline().addLast(new FirstClientHandler());
+                        ch.pipeline().addLast(new ClientHandler());
                     }
                 });
 
