@@ -3,7 +3,9 @@ package com.nettystu.server;
 import com.nettystu.protocol.Packet;
 import com.nettystu.protocol.PacketCodeC;
 import com.nettystu.protocol.request.LoginRequestPacket;
+import com.nettystu.protocol.request.MessageRequestPacket;
 import com.nettystu.protocol.response.LoginResponsePacket;
+import com.nettystu.protocol.response.MessageResponsePacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -26,7 +28,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
             LoginResponsePacket loginResponsePacket = new LoginResponsePacket();
             loginResponsePacket.setVersion(loginRequestPacket.getVersion());
-
             if(vrify(loginRequestPacket)) {
                 System.out.println(new Date() + "登录成功");
                 loginResponsePacket.setSuccess(true);
@@ -35,9 +36,18 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 loginResponsePacket.setReason("账户密码校验失败");
                 System.out.println(new Date() + "登录失败");
             }
-
             // 登录响应
             ByteBuf responseBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), loginResponsePacket);
+            ctx.channel().writeAndFlush(responseBuf);
+
+        } else if(packet instanceof MessageRequestPacket) {
+            MessageRequestPacket messageRequestPacket = (MessageRequestPacket) packet;
+
+            MessageResponsePacket messageResponsePacket = new MessageResponsePacket();
+            System.out.println(new Date() + "  收到客户端消息[ " + messageRequestPacket.getMessage() +" ] ");
+            messageResponsePacket.setMessage("服务端发送消息 [ "+ messageRequestPacket.getMessage() +" ] ");
+
+            ByteBuf responseBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), messageResponsePacket);
             ctx.channel().writeAndFlush(responseBuf);
         }
     }

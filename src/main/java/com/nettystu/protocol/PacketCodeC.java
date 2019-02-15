@@ -1,7 +1,9 @@
 package com.nettystu.protocol;
 
 import com.nettystu.protocol.request.LoginRequestPacket;
+import com.nettystu.protocol.request.MessageRequestPacket;
 import com.nettystu.protocol.response.LoginResponsePacket;
+import com.nettystu.protocol.response.MessageResponsePacket;
 import com.nettystu.serialize.JSONSerializer;
 import com.nettystu.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
@@ -10,8 +12,7 @@ import io.netty.buffer.ByteBufAllocator;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.nettystu.protocol.command.Command.LOGIN_REQUEST;
-import static com.nettystu.protocol.command.Command.LOGIN_RESPONSE;
+import static com.nettystu.protocol.command.Command.*;
 
 public class PacketCodeC {
 
@@ -25,6 +26,8 @@ public class PacketCodeC {
         packetTypeMap = new HashMap<Byte, Class<? extends Packet>>();
         packetTypeMap.put(LOGIN_REQUEST, LoginRequestPacket.class);
         packetTypeMap.put(LOGIN_RESPONSE, LoginResponsePacket.class);
+        packetTypeMap.put(MESSAGE_REQUEST, MessageRequestPacket.class);
+        packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
 
         serializerMap = new HashMap<Byte, Serializer>();
         Serializer serializer = new JSONSerializer();
