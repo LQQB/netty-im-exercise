@@ -245,3 +245,24 @@ channelHandle 有两大子接口，一个是 ChannelInboundHandler,
 * MessageToByteEncoder
 
     Netty提供的把响应对象编码成 ByteBuf  
+    
+#### 拆包粘包理论与解决方案
+
+* 什么是粘包?
+
+    Netty 的应用层是用 byteBuf 为单位发送数据的.但是到了底层还是通过字节流发送数据,操作系统的底层只认TCP协议.粘包就是指在从数据传输端到了数据接收端，
+    也是按照字节流的方式读入，然后到了 Netty 应用层面，重新拼装成 ByteBuf，而接收端的 ByteBuf 与数据传输端按顺序发送的 ByteBuf 不对等的情况
+    
+    在流传输中，UDP不会出现粘包，因为它有消息边界
+    
+* 拆包 跟 封包
+
+    TCP是流协议，所谓流，就是没有界限的一串数据。但是程序中却有多种不同的数据包，那就很可能会出现如上所说的粘包问题，
+    所以就需要在发送端封包，在接收端拆包。
+
+* Netty 自带的拆包器
+    1. 固定长度的拆包器 FixedLengthFrameDecoder
+    2. 行拆包器 LineBasedFrameDecoder
+    3. 分隔符拆包器 DelimiterBasedFrameDecoder
+    4. 基于长度域拆包器 LengthFieldBasedFrameDecoder
+
