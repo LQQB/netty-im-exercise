@@ -1,6 +1,9 @@
 package com.nettystu.server;
 
-import io.netty.bootstrap.Bootstrap;
+import com.nettystu.codec.PackerDecoder;
+import com.nettystu.codec.PackerEncoder;
+import com.nettystu.server.handler.LoginRequestHandler;
+import com.nettystu.server.handler.MessageRequestHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -19,18 +22,16 @@ public class NettyServer {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap
                 .group(boassGroup, workerGroup)
-                // .channel() 来指定 IO 模型(NioServerSocketChannel.class 是 Nio 模型 , OioServerSocketChannel.class 是 BIO 模型
                 .channel(NioServerSocketChannel.class)
-                // childHandler() 方法 给引导类创建一个 ChannelInitializer,主要用来定义后续每条连接的数据读写，业务处理逻辑
-                // ChannelInitializer 有一个泛型参数 NioSocketChannel，这个类 就是 Netty 对 NIO 类型的连接抽象。
-                // 前面用到的 NioServerSocketChannel 也是对 NIO连接的抽象， NioServerSocketChannel 和 NioSocketChannel 的概念可以跟
-                // ServerSocket 以及 Socket 两个概念对应
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
-                    protected void initChannel(NioSocketChannel ch) throws Exception {
+                    protected void initChannel(NioSocketChannel ch) {
                         System.out.println("服务端启动中");
                         // 指定连接数据读写逻辑
-                        ch.pipeline().addLast(new ServerHandler());
+                        ch.pipeline().addLast(new PackerDecoder());
+                        ch.pipeline().addLast(new LoginRequestHandler());
+                        ch.pipeline().addLast(new MessageRequestHandler());
+                        ch.pipeline().addLast(new PackerEncoder());
                     }
                 });
 

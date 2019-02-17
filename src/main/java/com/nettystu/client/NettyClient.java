@@ -1,5 +1,9 @@
 package com.nettystu.client;
 
+import com.nettystu.client.handler.LoginResponseHandler;
+import com.nettystu.client.handler.MessageResponseHandler;
+import com.nettystu.codec.PackerDecoder;
+import com.nettystu.codec.PackerEncoder;
 import com.nettystu.protocol.PacketCodeC;
 import com.nettystu.protocol.request.MessageRequestPacket;
 import com.nettystu.util.LoginUtil;
@@ -9,9 +13,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import sun.rmi.transport.tcp.TCPChannel;
 
-import java.nio.Buffer;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +35,10 @@ public class NettyClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new ClientHandler());
+                        ch.pipeline().addLast(new PackerDecoder());
+                        ch.pipeline().addLast(new LoginResponseHandler());
+                        ch.pipeline().addLast(new MessageResponseHandler());
+                        ch.pipeline().addLast(new PackerEncoder());
                     }
                 });
 
@@ -71,10 +76,7 @@ public class NettyClient {
                     Scanner scanner = new Scanner(System.in);
                     String line = scanner.nextLine();
 
-                    MessageRequestPacket messageRequestPacket = new MessageRequestPacket();
-                    messageRequestPacket.setMessage(line);
-                    ByteBuf messageBuf = PacketCodeC.INSTANCE.encode(channel.alloc(), messageRequestPacket);
-                    channel.writeAndFlush(messageBuf);
+                    channel.writeAndFlush(new MessageRequestPacket(line));
                 }
            }
         }).start();
