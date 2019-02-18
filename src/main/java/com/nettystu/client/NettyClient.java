@@ -4,6 +4,7 @@ import com.nettystu.client.handler.LoginResponseHandler;
 import com.nettystu.client.handler.MessageResponseHandler;
 import com.nettystu.codec.PackerDecoder;
 import com.nettystu.codec.PackerEncoder;
+import com.nettystu.codec.Spliter;
 import com.nettystu.protocol.PacketCodeC;
 import com.nettystu.protocol.request.MessageRequestPacket;
 import com.nettystu.util.LoginUtil;
@@ -35,6 +36,7 @@ public class NettyClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(new Spliter());
                         ch.pipeline().addLast(new PackerDecoder());
                         ch.pipeline().addLast(new LoginResponseHandler());
                         ch.pipeline().addLast(new MessageResponseHandler());
@@ -42,7 +44,7 @@ public class NettyClient {
                     }
                 });
 
-        connect(bootstrap,"127.0.0.1", 8000, MAX_RETRY);
+        connect(bootstrap,"127.0.0.1", 8001, MAX_RETRY);
     }
 
     private static void connect(Bootstrap bootstrap, String host, int port, int retry) {

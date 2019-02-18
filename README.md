@@ -262,6 +262,12 @@ channelHandle 有两大子接口，一个是 ChannelInboundHandler,
 
 * Netty 自带的拆包器
     1. 固定长度的拆包器 FixedLengthFrameDecoder
+    
+        FixedLengthFrameDecoder 的参数
+        1. 数据包最大长度
+        2. 长度域偏移量
+        3. 长度域的长度(数据长度)
+        
     2. 行拆包器 LineBasedFrameDecoder
     3. 分隔符拆包器 DelimiterBasedFrameDecoder
     4. 基于长度域拆包器 LengthFieldBasedFrameDecoder

@@ -16,7 +16,7 @@ import static com.nettystu.protocol.command.Command.*;
 
 public class PacketCodeC {
 
-    private static final int MAGIC_NUMBER = 0x00000123;
+    public static final int MAGIC_NUMBER = 0x00000123;
     public static final PacketCodeC INSTANCE = new PacketCodeC();
 
     private final Map<Byte, Class<? extends Packet>> packetTypeMap;
