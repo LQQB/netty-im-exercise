@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionUtil {
+
+
+    //    SessionUtil 里面维持了一个 useId -> channel 的映射 map
     private static final Map<String, Channel> userIdChannelMap = new ConcurrentHashMap<>();
 
     public static void bindSession(Session session, Channel channel) {
