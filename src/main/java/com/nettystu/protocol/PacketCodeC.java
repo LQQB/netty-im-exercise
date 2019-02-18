@@ -1,13 +1,16 @@
 package com.nettystu.protocol;
 
+import com.nettystu.protocol.request.CreateGroupRequestPacket;
 import com.nettystu.protocol.request.LoginRequestPacket;
+import com.nettystu.protocol.request.LogoutRequestPacket;
 import com.nettystu.protocol.request.MessageRequestPacket;
+import com.nettystu.protocol.response.CreateGroupResponsePacket;
 import com.nettystu.protocol.response.LoginResponsePacket;
+import com.nettystu.protocol.response.LogoutResponsePacket;
 import com.nettystu.protocol.response.MessageResponsePacket;
-import com.nettystu.serialize.JSONSerializer;
+import com.nettystu.serialize.impl.JSONSerializer;
 import com.nettystu.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +31,10 @@ public class PacketCodeC {
         packetTypeMap.put(LOGIN_RESPONSE, LoginResponsePacket.class);
         packetTypeMap.put(MESSAGE_REQUEST, MessageRequestPacket.class);
         packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
+        packetTypeMap.put(LOGOUT_REQUEST, LogoutRequestPacket.class);
+        packetTypeMap.put(LOGOUT_RESPONSE, LogoutResponsePacket.class);
+        packetTypeMap.put(CREATE_GROUP_REQUEST, CreateGroupRequestPacket.class);
+        packetTypeMap.put(CREATE_GROUP_RESPONSE, CreateGroupResponsePacket.class);
 
         serializerMap = new HashMap<Byte, Serializer>();
         Serializer serializer = new JSONSerializer();

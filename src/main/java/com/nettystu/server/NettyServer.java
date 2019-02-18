@@ -5,6 +5,7 @@ import com.nettystu.codec.PackerEncoder;
 import com.nettystu.codec.Spliter;
 import com.nettystu.server.handler.AuthenHandler;
 import com.nettystu.server.handler.LoginRequestHandler;
+import com.nettystu.server.handler.LogoutRequestHandler;
 import com.nettystu.server.handler.MessageRequestHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -32,6 +33,7 @@ public class NettyServer {
                         ch.pipeline().addLast(new Spliter());   // 拒绝非本协议连接
                         ch.pipeline().addLast(new PackerDecoder());
                         ch.pipeline().addLast(new LoginRequestHandler());
+                        ch.pipeline().addLast(new LogoutRequestHandler());
 
                         // 新增用户认证 handler
                         ch.pipeline().addLast(new AuthenHandler());

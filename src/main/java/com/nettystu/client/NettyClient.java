@@ -1,6 +1,7 @@
 package com.nettystu.client;
 
 import com.nettystu.client.handler.LoginResponseHandler;
+import com.nettystu.client.handler.LogoutResponseHandler;
 import com.nettystu.client.handler.MessageResponseHandler;
 import com.nettystu.codec.PackerDecoder;
 import com.nettystu.codec.PackerEncoder;
@@ -39,6 +40,7 @@ public class NettyClient {
                         ch.pipeline().addLast(new Spliter());
                         ch.pipeline().addLast(new PackerDecoder());
                         ch.pipeline().addLast(new LoginResponseHandler());
+                        ch.pipeline().addLast(new LogoutResponseHandler());
                         ch.pipeline().addLast(new MessageResponseHandler());
                         ch.pipeline().addLast(new PackerEncoder());
                     }

@@ -1,5 +1,7 @@
 package com.nettystu.serialize;
 
+import com.nettystu.serialize.impl.JSONSerializer;
+
 public interface Serializer {
 
     // 这样就实现了序列化相关的逻辑，如果想要实现其他序列化算法的话，
