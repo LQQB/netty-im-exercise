@@ -1,4 +1,4 @@
-package com.nettystu.protocol.command;
+package com.nettystu.protocol;
 
 import lombok.Data;
 

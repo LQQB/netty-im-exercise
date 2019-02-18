@@ -190,3 +190,79 @@ buffer.resetReaderIndex();
 
 
 一套标准的通讯协议都会含有: 魔数，版本号，序列化算法，指令，数据长度，数据
+
+
+#### 客户端登录流程
+
+客户端发送一个 登录请求的数据包，服务端接收并校验，校验通过返回 成功的登录响应的数据包，
+校验不通过返回 失败的登录响应的数据包
+
+#### 客户端跟服务端收发消息
+ * attr() 通过 Channel 绑定属性来设置某些状态，通过判断状态可以知道 Channel 的登录状态
+ * 定义一对 MESSAGE 请求响应的数据包，来进行消息的收发
+ * 通过控制台获取消息，并发送给服务端
+ 
+ 
+#### Netty 的两个核心组件 channelHandler() 跟 pipeline()
+pipeline 和 channelHandler 通过责任链来组织代码逻辑。
+
+channelHandle 有两大子接口，一个是 ChannelInboundHandler,
+一个是 ChannelOutboundHandler , 从接口名就可以看出 一个是在处理
+读数据的逻辑，一个是处理写数据的逻辑
+
+* ChannelInboundHandler 的事件传播
+    ```text
+    public class InHandleA extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            System.out.println("InHandleA: " + msg);
+            super.channelRead(ctx, msg);  // 这里父类的 channelRead() 方法会自动调用到下一个 inBoundHandler
+        }
+    }
+    
+    public class InHandleB extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            System.out.println("InHandleB: " + msg);
+            super.channelRead(ctx, msg);
+        }
+    }
+    
+    ```
+    channelRead() 方法里面，我们打印当前 handler 的信息，然后调用父类的 channelRead() 
+    方法，而这里父类的 channelRead() 方法会自动调用到下一个 inBoundHandler 的 channelRead() 方法.
+
+#### 客户端跟服务端构建 pipeline
+
+* ByteToMessageDecoder 
+
+    Netty 提供的将二进制数据转换成Java对象的父类
+
+* SimpleChannelInboundHandler
+
+    ChannelHandler的子接口，可以把 根据类型判断和对象传递的活都自动帮我们实现了,来简化我们的指令处理逻辑
+    
+* MessageToByteEncoder
+
+    Netty提供的把响应对象编码成 ByteBuf  
+    
+#### 拆包粘包理论与解决方案
+
+* 什么是粘包?
+
+    Netty 的应用层是用 byteBuf 为单位发送数据的.但是到了底层还是通过字节流发送数据,操作系统的底层只认TCP协议.粘包就是指在从数据传输端到了数据接收端，
+    也是按照字节流的方式读入，然后到了 Netty 应用层面，重新拼装成 ByteBuf，而接收端的 ByteBuf 与数据传输端按顺序发送的 ByteBuf 不对等的情况
+    
+    在流传输中，UDP不会出现粘包，因为它有消息边界
+    
+* 拆包 跟 封包
+
+    TCP是流协议，所谓流，就是没有界限的一串数据。但是程序中却有多种不同的数据包，那就很可能会出现如上所说的粘包问题，
+    所以就需要在发送端封包，在接收端拆包。
+
+* Netty 自带的拆包器
+    1. 固定长度的拆包器 FixedLengthFrameDecoder
+    2. 行拆包器 LineBasedFrameDecoder
+    3. 分隔符拆包器 DelimiterBasedFrameDecoder
+    4. 基于长度域拆包器 LengthFieldBasedFrameDecoder
+
