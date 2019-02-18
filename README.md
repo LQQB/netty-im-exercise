@@ -339,3 +339,10 @@ public final void channelRegistered(ChannelHandlerContext ctx) throws Exception 
     我们在每次向客户端写数据的时候，都通过 writeAndFlush() 的方法写并刷新到底层，其实这种方式不是特别高效，我们可以在之前调用 writeAndFlush() 
     的地方都调用 write() 方法，然后在这个方面里面调用 ctx.channel().flush() 方法，相当于一个批量刷新的机制，当然，如果你对性能要求没那么高，
     writeAndFlush()
+    
+#### 一对一聊天原理
+A用户要跟B用户聊天 ，首先A跟B要跟服务器建立连接，然后进行一次登录。服务端保留用户标识和TCP
+连接的映射关系。
+
+A跟B发送消息，首先需要将带有B标识的消息数据包发送给服务端，然后服务器从消息数据包中拿到B的标
+识，找到对应的B的连接，将消息发送给B。

@@ -5,11 +5,11 @@ import com.nettystu.client.handler.MessageResponseHandler;
 import com.nettystu.codec.PackerDecoder;
 import com.nettystu.codec.PackerEncoder;
 import com.nettystu.codec.Spliter;
-import com.nettystu.protocol.PacketCodeC;
+import com.nettystu.protocol.request.LoginRequestPacket;
 import com.nettystu.protocol.request.MessageRequestPacket;
-import com.nettystu.util.LoginUtil;
+import com.nettystu.session.Session;
+import com.nettystu.util.SessionUtil;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -71,17 +71,31 @@ public class NettyClient {
     }
 
     private static void startConsoleThread(Channel channel) {
+        Scanner scanner = new Scanner(System.in);
+        LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
+
         new Thread( () -> {
            while (!Thread.interrupted()) {
-                if(LoginUtil.hasLogin(channel)) {
-                    System.out.println("请输入消息发送至服务端");
-                    Scanner scanner = new Scanner(System.in);
-                    String line = scanner.nextLine();
-
-                    channel.writeAndFlush(new MessageRequestPacket(line));
+                if(!SessionUtil.hasLogin(channel)) {
+                    System.out.println("输入用户名登录: ");
+                    String usernmae = scanner.nextLine();
+                    loginRequestPacket.setUsername(usernmae);
+                    loginRequestPacket.setPassword("123456");   // 密码默认
+                    channel.writeAndFlush(loginRequestPacket);
+                    waitForLoginResponse();
+                } else {
+                    String toUserId = scanner.next();
+                    String message = scanner.next();
+                    channel.writeAndFlush(new MessageRequestPacket(toUserId, message));
                 }
            }
         }).start();
     }
 
+    private static void waitForLoginResponse() {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException ignored) {
+        }
+    }
 }
