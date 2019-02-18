@@ -271,4 +271,71 @@ channelHandle 有两大子接口，一个是 ChannelInboundHandler,
     2. 行拆包器 LineBasedFrameDecoder
     3. 分隔符拆包器 DelimiterBasedFrameDecoder
     4. 基于长度域拆包器 LengthFieldBasedFrameDecoder
+    
 
+#### ChannelHandler生命周期
+
+ChannelHandler 的回调方法的执行顺序:
+
+> handlerAdded() -> channelRegistered() -> channelActive() -> channelRead() ->
+channelReadComplete() 
+
+1. handlerAdded(): 检查当前是否有新的连接，就会执行该回调,表示当前有 channel 中，成功添加一个 handler
+2. channelRegistered(): 这个回调方法，当前的表示当前的 channel 的所有逻辑处理已经和某个 NIO 线程建立绑定关系
+3. channelActive(): 当 channel 的所有业务逻辑链准备完毕，以及绑定好一个 NIO 线程之后，这条连接算是正常激活，就会回调此方法。
+4. channelRead(): 发送端向接收端发来数据，每次都会回调此方法，表示有数据可读
+5. channelReadComplete(): 接收端每次读完一个词完整的数据后，回调该方法，表示数据读取完毕。
+
+6. channelInactive(): 表面这条连接已经被关闭了，这条连接在 TCP 层面已经不再是 ESTABLISH 状态了
+7. channelUnregistered(): 既然连接已经被关闭，那么与这条连接绑定的线程就不需要对这条连接负责了，这个回调
+就表明与这条连接对应的 NIO 线程移除掉对这条连接的处理
+8. handlerRemoved()：最后，我们给这条连接上添加的所有的业务逻辑处理器都给移除掉。
+
+
+> ChannelInitializer.java
+```text
+protected abstract void initChannel(C ch) throws Exception;
+
+public final void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        // ...
+        initChannel(ctx);
+        // ...
+    }
+
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        // ...
+        if (ctx.channel().isRegistered()) {
+            initChannel(ctx);
+        }
+        // ...
+    }
+
+    private boolean initChannel(ChannelHandlerContext ctx) throws Exception {
+        if (initMap.putIfAbsent(ctx, Boolean.TRUE) == null) {
+            initChannel((C) ctx.channel());
+            // ...
+            return true;
+        }
+        return false;
+    }
+```
+
+
+1. handlerAdded() 与 handlerRemoved()
+
+这两个方法通常可以用在一些资源的申请和释放
+
+2. channelActive() 与 channelInActive()
+   1. 对我们的应用程序来说，这两个方法表明的含义是 TCP 连接的建立与释放，通常我们在这两个回调里面统计单机的连接数，channelActive() 被调用，连接数加一，channelInActive() 被调用，连接数减一
+   2. 另外，我们也可以在 channelActive() 方法中，实现对客户端连接 ip 黑白名单的过滤，具体这里就不展开了
+
+3. channelRead()
+
+    我们在前面小节讲拆包粘包原理，服务端根据自定义协议来进行拆包，其实就是在这个方法里面，每次读到一定的数据，都会累加到一个容器里面，然后判断是否能够拆
+    出来一个完整的数据包，如果够的话就拆了之后，往下进行传递
+    
+4. channelReadComplete()
+
+    我们在每次向客户端写数据的时候，都通过 writeAndFlush() 的方法写并刷新到底层，其实这种方式不是特别高效，我们可以在之前调用 writeAndFlush() 
+    的地方都调用 write() 方法，然后在这个方面里面调用 ctx.channel().flush() 方法，相当于一个批量刷新的机制，当然，如果你对性能要求没那么高，
+    writeAndFlush()

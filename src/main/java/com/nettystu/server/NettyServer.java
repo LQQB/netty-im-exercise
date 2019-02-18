@@ -3,6 +3,7 @@ package com.nettystu.server;
 import com.nettystu.codec.PackerDecoder;
 import com.nettystu.codec.PackerEncoder;
 import com.nettystu.codec.Spliter;
+import com.nettystu.demo.leftcycle.LifeCycleTestHandler;
 import com.nettystu.server.handler.LoginRequestHandler;
 import com.nettystu.server.handler.MessageRequestHandler;
 import io.netty.bootstrap.ServerBootstrap;
@@ -29,6 +30,7 @@ public class NettyServer {
                     protected void initChannel(NioSocketChannel ch) {
                         System.out.println("服务端启动中");
                         // 指定连接数据读写逻辑
+                        ch.pipeline().addLast(new LifeCycleTestHandler());
                         ch.pipeline().addLast(new Spliter());   // 拒绝非本协议连接
                         ch.pipeline().addLast(new PackerDecoder());
                         ch.pipeline().addLast(new LoginRequestHandler());
